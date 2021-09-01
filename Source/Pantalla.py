@@ -3,7 +3,7 @@ import pygame
 class Pantalla():
   def __init__(self):
     self.Celdas = 20
-    self.CeldasTamaño = 20
+    self.CeldasTamaño = 40
     self.Bordes = (self.CeldasTamaño * self.Celdas)
 
   def getCeldas(self):
