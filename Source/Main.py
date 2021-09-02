@@ -1,9 +1,10 @@
 import pygame
 import sys
+from Pantalla import Pantalla
+from pygame.math import Vector2
 from FRUTAS import Fruit
 from SNAKE import Snake
-from Pantalla import Pantalla
-from  pygame.math import Vector2
+from Player import Player
 
 #init
 pygame.init()
@@ -13,10 +14,8 @@ pygame.init()
 pantalla = Pantalla()
 screen = pantalla.getScreen()
 bordes = pantalla.getBordes()
-
-
-snake = Snake()
-fruit = Fruit()
+CeldasTamaño = pantalla.getCeldasTamaño()
+Celdas = pantalla.getCeldas()
 
 #FPS
 SCREEN_UPDATE = pygame.USEREVENT
@@ -27,38 +26,37 @@ Clock = pygame.time.Clock()
 fuente = pygame.font.Font(None, 30)
 
 #player
-score = 0
+player = Player()
+
+
+
+#Serpiente
+snake = Snake()
 
 #Fruta
 RectFruta = None
+fruit = Fruit(snake.getCuerpo(),pantalla.getCeldas())
 
-#Serpiente
-def serpiente():
-    snake.dibujarSerpiente()
-CabezaSerp = None
-CuerpoSerp = None
+
+
+
 
 while True:
-    
-    Puntaje = fuente.render(f"Puntaje = {score}",None,"red")
 
-    #Make rect
-    CabezaSerp = snake.getRectSerpienteCabeza()
-    RectFruta = fruit.getRectFruta()
-    CuerpoSerp = snake.getRectSerpiente()
-    
-    #Exit game by clicking the cross
+
+    #Eventos
     for event in pygame.event.get():
+
+        #Salir del juego con la cruz
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit
-    #Serpiente movimiento        
+
+
+        #Serpiente movimiento        
         if event.type == SCREEN_UPDATE:
             snake.movimientoSerpiente()
-            for block in snake.getCuerpo()[2:]:
-                if snake.getPos() == pygame.math.Vector2((block),(block)):
-                    pygame.quit()
-                    sys.exit 
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 snake.direction = Vector2(0,-1)
@@ -68,32 +66,65 @@ while True:
                 snake.direction = Vector2(-1,0)
             if event.key == pygame.K_RIGHT:
                 snake.direction = Vector2(1,0)
-
-    #Colision de serpiente
-    if fruit.getpos() == snake.getPos():   
-            fruit = Fruit()
-            snake.serpienteCrecer()
-            fruit.dibujarFruta()
-            score += 1
-
-    if not CabezaSerp is None:
-        if CabezaSerp.right > bordes or CabezaSerp.left < 0:
-            pygame.quit()
-            sys.exit 
-        if CabezaSerp.midbottom[1] > bordes or CabezaSerp.midtop[1] < 0:
-            pygame.quit()
-            sys.exit 
-
-    
         
 
+        #Colisiones serpiente
+ 
+        #Morir si se choca con si misma
+        for block in snake.getCuerpo()[2:]:
+                if snake.getPos() == pygame.math.Vector2((block),(block)):
+                    snake = Snake()
+                    fruit = Fruit(snake.getCuerpo(),pantalla.getCeldas())
+                    if score > highscore:
+                        player.sethighscore(score)
+                    player.setscore(0)
+        
+        #Comer fruta
+        if fruit.getpos() == snake.getPos():   
+                fruit = Fruit(snake.getCuerpo(),pantalla.getCeldas())
+                snake.serpienteCrecer()
+                player.sumarPuntos()
+                
+        #Chocarse contra los bordes
+        if not snake.getRectSerpienteCabeza() is None:
+            CabezaSerp = snake.getRectSerpienteCabeza()
 
-    #Draw elements
+            #borde derecho e izquierdo
+            if CabezaSerp.right > bordes or CabezaSerp.left < 0:
+                snake = Snake()
+                fruit = Fruit(snake.getCuerpo(),pantalla.getCeldas())
+                if score > highscore:
+                    player.sethighscore(score)
+                player.setscore(0)
+
+                #borde arriba o abajo
+            if CabezaSerp.midbottom[1] > bordes or CabezaSerp.midtop[1] < 0:
+                snake = Snake()
+                fruit = Fruit(snake.getCuerpo(),pantalla.getCeldas())
+                if score > highscore:
+                    player.sethighscore(score)
+                player.setscore(0)
+
+    #Score
+    score = player.getscore()
+    highscore = player.gethighscore()
+    Puntaje = fuente.render(f"Score = {int(score)}",None,"Blue")
+    maxPuntaje = fuente.render(f"Highscore = {int(highscore)}",None,"Blue")
+
+    #Make rect
+    RectFruta = fruit.getRectFruta()
+    
+    
+
+    
+    #Dibujar elementos
     pygame.display.update()
     screen.fill((170,200,70))
     screen.blit(Puntaje,(10,10))
-    fruit.dibujarFruta()
-    serpiente()
+    screen.blit(maxPuntaje,((bordes-(bordes // 2)),10))
+    fruit.dibujarFruta(screen,CeldasTamaño)
+    snake.dibujarSerpiente(screen,CeldasTamaño)
+
     #Limitar 60 Fps
     Clock.tick(60)
     

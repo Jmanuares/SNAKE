@@ -1,12 +1,6 @@
-from FRUTAS import Celdas
 import pygame
 from  pygame.math import Vector2
-from Pantalla import Pantalla
 
-pantalla = Pantalla()
-
-screen = pantalla.getScreen()
-CeldasTamaño = pantalla.getCeldasTamaño()
 
 class Snake:
     def __init__(self):
@@ -18,7 +12,7 @@ class Snake:
 
 
 
-    def dibujarSerpiente(self):
+    def dibujarSerpiente(self,screen,CeldasTamaño):
         x_pos = int((self.body[0]).x * CeldasTamaño )
         y_pos = int((self.body[0]).y * CeldasTamaño )
         self.pos = pygame.math.Vector2((self.body[0]),(self.body[0]))
@@ -38,9 +32,6 @@ class Snake:
 
     def getPos(self):
         return self.pos
-    
-    def getRectSerpiente(self):
-        return self.rectSerpiente
 
 
     def getRectSerpienteCabeza(self):
